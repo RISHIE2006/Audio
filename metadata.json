@@ -1,0 +1,6 @@
+{
+  "name": "Deepfake Audio Detector",
+  "description": "Real-time synthetic audio detection using DSP feature extraction and machine learning to identify vocoder artifacts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

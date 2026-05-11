@@ -8,6 +8,7 @@ interface Prediction {
   filename: string;
   fake_probability: number;
   is_deepfake: boolean;
+  threat_level?: 'SAFE' | 'CAUTION' | 'THREAT';
   error?: string;
   warning?: string;
   model_issue?: string;
@@ -21,6 +22,7 @@ interface ScanHistory {
   date: string;
   probability: number;
   is_deepfake: boolean;
+  threat_level?: 'SAFE' | 'CAUTION' | 'THREAT';
 }
 
 const COLORS = {
@@ -29,6 +31,12 @@ const COLORS = {
   accent: '#A67C52', // Light brown accent
   error: '#ef4444',
   success: '#10b981',
+};
+
+const THREAT_LEVELS = {
+  SAFE: { color: '#10b981', bgColor: '#d1fae5', borderColor: '#6ee7b7', label: 'Safe', icon: ShieldCheck },
+  CAUTION: { color: '#f59e0b', bgColor: '#fef3c7', borderColor: '#fcd34d', label: 'Caution', icon: ShieldAlert },
+  THREAT: { color: '#ef4444', bgColor: '#fee2e2', borderColor: '#fca5a5', label: 'Threat', icon: Shield },
 };
 
 export default function App() {
@@ -62,6 +70,7 @@ export default function App() {
       date: new Date().toISOString(),
       probability: Number.isFinite(probability) ? probability : 0,
       is_deepfake: Boolean(pred.is_deepfake),
+      threat_level: pred.threat_level || 'SAFE',
     };
     setScanHistory(prev => {
       const next = [newEntry, ...prev].slice(0, 10);
@@ -165,6 +174,7 @@ export default function App() {
         filename: file.name,
         fake_probability: Number(raw.fake_probability ?? 0) || 0,
         is_deepfake: Boolean(raw.is_deepfake),
+        threat_level: raw.threat_level || 'SAFE',
         warning: raw.warning || raw.error,
         error: raw.error,
         model_issue: raw.warning && raw.fake_probability === undefined ? raw.warning : undefined,
@@ -369,7 +379,29 @@ export default function App() {
         <div className="lg:col-span-4 flex flex-col gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#EBE4DC] flex flex-col items-center">
             <h2 className="text-sm uppercase tracking-wider font-semibold text-stone-500 mb-6 w-full text-center">Threat Assessment</h2>
-            
+
+            {/* Threat Level Badge */}
+            {prediction && (
+              <div className="w-full mb-6 p-4 rounded-xl flex items-center justify-center gap-3" style={{
+                backgroundColor: THREAT_LEVELS[prediction.threat_level || 'SAFE'].bgColor,
+                borderColor: THREAT_LEVELS[prediction.threat_level || 'SAFE'].borderColor,
+                borderWidth: '2px'
+              }}>
+                {React.createElement(THREAT_LEVELS[prediction.threat_level || 'SAFE'].icon, {
+                  size: 24,
+                  style: { color: THREAT_LEVELS[prediction.threat_level || 'SAFE'].color }
+                })}
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold" style={{ color: THREAT_LEVELS[prediction.threat_level || 'SAFE'].color }}>
+                    {THREAT_LEVELS[prediction.threat_level || 'SAFE'].label.toUpperCase()}
+                  </span>
+                  <span className="text-xs" style={{ color: THREAT_LEVELS[prediction.threat_level || 'SAFE'].color }}>
+                    {(prediction.fake_probability * 100).toFixed(1)}% Deepfake Probability
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Minimal Gauge */}
             <div className="relative w-48 h-48 mb-4 flex items-center justify-center">
               <Plot
@@ -378,16 +410,18 @@ export default function App() {
                     type: "indicator",
                     mode: "gauge+number",
                     value: prediction ? (prediction.fake_probability * 100) : 0,
-                    number: { 
-                      suffix: "%", 
-                      font: { color: prediction ? (prediction.is_deepfake ? COLORS.error : COLORS.success) : '#9CA3AF', size: 40, family: 'Inter' } 
+                    number: {
+                      suffix: "%",
+                      font: { color: prediction ? THREAT_LEVELS[prediction.threat_level || 'SAFE'].color : '#9CA3AF', size: 40, family: 'Inter' }
                     },
                     gauge: {
                       axis: { range: [0, 100], tickwidth: 0, visible: false },
-                      bar: { color: prediction ? (prediction.is_deepfake ? COLORS.error : COLORS.success) : '#E5E7EB', thickness: 0.1 },
+                      bar: { color: prediction ? THREAT_LEVELS[prediction.threat_level || 'SAFE'].color : '#E5E7EB', thickness: 0.1 },
                       bgcolor: "#F3F4F6",
                       steps: [
-                        { range: [0, 100], color: "transparent" },
+                        { range: [0, 30], color: "#d1fae5" },
+                        { range: [30, 70], color: "#fef3c7" },
+                        { range: [70, 100], color: "#fee2e2" },
                       ],
                       threshold: {
                         line: { color: "#9CA3AF", width: 1 },
@@ -419,13 +453,23 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                ) : prediction.is_deepfake ? (
+                ) : prediction.threat_level === 'THREAT' ? (
                   <div className="bg-red-50 text-red-700 p-4 rounded-xl flex items-start gap-3 border border-red-100">
                     <ShieldAlert className="w-5 h-5 mt-0.5 flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold text-sm">Synthetic Audio Detected</h3>
                       <p className="text-xs mt-1 text-red-600/80 leading-relaxed">
                         Model detected unnatural phase shifts and high-frequency roll-off anomalies consistent with AI vocoders.
+                      </p>
+                    </div>
+                  </div>
+                ) : prediction.threat_level === 'CAUTION' ? (
+                  <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl flex items-start gap-3 border border-yellow-100">
+                    <ShieldAlert className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-sm">Potential Synthesis Detected</h3>
+                      <p className="text-xs mt-1 text-yellow-700/80 leading-relaxed">
+                        Some artifacts detected but confidence is moderate. Manual review recommended.
                       </p>
                     </div>
                   </div>
@@ -554,8 +598,16 @@ export default function App() {
                         <X className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${scan.is_deepfake ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                      {scan.is_deepfake ? 'Synthetic' : 'Authentic'}
+                    <div className="flex gap-2">
+                      <div className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${scan.is_deepfake ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                        {scan.is_deepfake ? 'Synthetic' : 'Authentic'}
+                      </div>
+                      <div className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full`} style={{
+                        backgroundColor: THREAT_LEVELS[scan.threat_level || 'SAFE'].bgColor,
+                        color: THREAT_LEVELS[scan.threat_level || 'SAFE'].color
+                      }}>
+                        {THREAT_LEVELS[scan.threat_level || 'SAFE'].label}
+                      </div>
                     </div>
                   </div>
                 ))}

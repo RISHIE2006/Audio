@@ -23,12 +23,18 @@ async function startServer() {
       spawn("python", ["-m", "venv", "venv"]).on("close", (code) => {
         if (code === 0) {
           console.log("Installing Python dependencies...");
-          spawn(getPipPath(), ["install", "-r", "requirements.txt"], { stdio: "inherit" });
+          const pipProcess = spawn(getPipPath(), ["install", "-r", "requirements.txt"], { stdio: "inherit" });
+          pipProcess.on("error", (err) => {
+            console.error("Warning: Failed to run pip install:", err);
+          });
         }
       });
     } else {
       console.log("Python venv exists. Installing dependencies...");
-      spawn(getPipPath(), ["install", "-r", "requirements.txt"], { stdio: "inherit" });
+      const pipProcess = spawn(getPipPath(), ["install", "-r", "requirements.txt"], { stdio: "inherit" });
+      pipProcess.on("error", (err) => {
+        console.error("Warning: Failed to run pip install:", err);
+      });
     }
   } catch (err) {
     console.error("Warning: Failed to setup Python environment.", err);

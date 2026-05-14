@@ -16,6 +16,23 @@ Audio Verifier is a full-stack application designed to analyze and detect synthe
 - **Security Reports:** Generate and download detailed JSON security reports for the analyzed audio.
 - **Model Retraining:** Retrain the detection model directly from the UI to improve accuracy over time.
 
+## Screenshots
+
+### Default State
+![Default State — awaiting audio upload](screenshots/01_default_state.png)
+
+### Audio Loaded & Ready to Analyze
+![Audio file loaded, ready for analysis](screenshots/04_file_loaded.png)
+
+### Analyzing in Progress
+![Analysis in progress with spinner](screenshots/05_analyzing_state.png)
+
+### Analysis Results — Threat Assessment
+![Deepfake detection results with threat gauge and spectral indicators](screenshots/02_analysis_results.png)
+
+### Detailed Metrics & Scan History
+![Detailed spectral metrics, file properties, and recent scan history](screenshots/03_detailed_metrics.png)
+
 ## Technology Stack
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS (v4), Lucide React, Plotly.js (Data Visualization), Motion (Animations).
@@ -122,4 +139,5 @@ This will save:
 - `deepfake_detector.pkl`: The saved machine learning model.
 - `requirements.txt`: Python dependencies.
 - `package.json`: Node dependencies and project scripts.
+- `screenshots/`: Application screenshots for documentation.
 - Dataset folders (`audio_data/`, `training_data/`, `synthetic_audio/`, `authentic_audio/`): Used for training and validating the model.

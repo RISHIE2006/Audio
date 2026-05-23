@@ -5,7 +5,6 @@ import multer from "multer";
 import cors from "cors";
 import fs from "fs";
 import { spawn } from "child_process";
-import { GoogleGenAI, Type } from "@google/genai";
 import { platform } from "os";
 
 function getPipPath(): string {
@@ -47,9 +46,6 @@ async function startServer() {
   app.use(express.json());
 
   const upload = multer({ dest: "uploads/" });
-
-  // Initialize Gemini
-  const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 
   // API Route for prediction
   app.post("/api/predict", upload.single("audio"), async (req, res) => {

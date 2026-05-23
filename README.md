@@ -39,6 +39,17 @@ Audio Verifier is a full-stack application designed to analyze and detect synthe
 - **Backend:** Node.js, Express.js.
 - **Machine Learning & DSP:** Python. The backend spawns Python scripts (`predict_wrapper.py`, `train_model.py`) to handle intensive audio processing and inference using a pre-trained model (`deepfake_detector.pkl`).
 
+## Offline Capability
+
+**This application is fully functional offline.** All core features including audio analysis, model inference, and training work without any internet connection:
+
+- **No external API dependencies** — All processing happens locally on your machine.
+- **Complete local inference** — The trained model (`deepfake_detector.pkl`) runs entirely offline.
+- **Scan history stored locally** — Browser localStorage keeps your scan history without cloud sync.
+- **Self-contained environment** — Python venv and all dependencies are managed locally.
+
+Simply run the application after installation, and it will work completely offline. No API keys or internet connectivity required.
+
 ## Getting Started
 
 ### Prerequisites
